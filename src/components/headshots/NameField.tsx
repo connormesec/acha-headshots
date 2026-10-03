@@ -25,7 +25,7 @@ export function NameField({ value, onSave, chain = false, id, disabled }: {
   const [error, setError] = useState<string>();
   const [saving, setSaving] = useState(false);
   const focused = useRef(false);
-  const saved = useRef(stemOf(value)); // last name the server accepted
+  const saved = useRef(stemOf(value)); // last name that was saved
 
   useEffect(() => {
     saved.current = stemOf(value);

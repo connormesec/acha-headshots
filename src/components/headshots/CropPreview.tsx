@@ -1,7 +1,7 @@
 import type { Crop } from "../../state/types";
 
 /** Shows exactly what the 1000×1500 file will contain, by positioning the preview image
- * inside a 2:3 window. No server render needed. */
+ * inside a 2:3 window. No render needed. */
 export function CropPreview({ src, crop, alt, className = "" }: {
   src: string | null;
   crop: Crop | null;

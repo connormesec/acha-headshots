@@ -14,7 +14,9 @@ export function App() {
     : batch.status === "READY" || batch.status === "FAILED" || backToCrops ? "review"
     : "export";
 
-  useEffect(() => window.scrollTo(0, 0), [screen]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen]);
 
   return (
     <Layout>

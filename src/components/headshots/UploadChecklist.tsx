@@ -1,4 +1,4 @@
-/** "What to upload": do / don't examples, drawn as simple silhouettes. */
+/** "Which photos to use": do / don't examples, drawn as simple silhouettes. */
 import type { ReactNode } from "react";
 
 function Frame({ children, tone }: { children: ReactNode; tone: "good" | "bad" }) {
@@ -54,7 +54,7 @@ const TINY = (
 export function UploadChecklist() {
   return (
     <section className="panel checklist" aria-labelledby="checklist-title">
-      <h2 id="checklist-title" className="section-title">What to upload</h2>
+      <h2 id="checklist-title" className="section-title">Which photos to use</h2>
       <div className="checklist__cols">
         <div className="checklist__col checklist__col--good">
           <div className="checklist__examples">{GOOD}</div>
