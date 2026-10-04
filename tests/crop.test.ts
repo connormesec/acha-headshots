@@ -1,4 +1,4 @@
-// Port of the framing tests in Puck Press backend/tests/test_headshots.py.
+// Port of the framing tests in the original backend/tests/test_headshots.py.
 import { describe, expect, it } from "vitest";
 import {
   ASPECT, HEAD_ABOVE_FACE, HEAD_TOP_MARGIN, assess, cropPixels, frameCenter, frameFace,

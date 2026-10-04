@@ -1,7 +1,7 @@
 # Plan: ACHA Headshots — standalone, in-browser rewrite
 
 ## Context
-The headshot tool lives inside "Puck Press Photo AI" (`C:\Users\conno\projects\image_categorization`): a React frontend + Python backend (face finding, crop, compression). The owner wants it public and free to host on Hostinger Business ("Web App": static/JS only, no Python). So: a new standalone Vite + React + TS app where everything (decode, MediaPipe face/person detection, 2:3 crop, review/edit, 1000×1500 JPEG ≤ 2,000,000 B, ZIP download) runs in the visitor's browser. No backend, no uploads, no accounts.
+The headshot tool lives inside an existing app (`C:\Users\conno\projects\image_categorization`): a React frontend + Python backend (face finding, crop, compression). The owner wants it public and free to host on Hostinger Business ("Web App": static/JS only, no Python). So: a new standalone Vite + React + TS app where everything (decode, MediaPipe face/person detection, 2:3 crop, review/edit, 1000×1500 JPEG ≤ 2,000,000 B, ZIP download) runs in the visitor's browser. No backend, no uploads, no accounts.
 
 The owner's full spec is reproduced verbatim in the **Appendix** below and is the source of truth. This top section only records decisions and corrections found while reading the old repo, plus execution order.
 
@@ -43,7 +43,7 @@ Never read or copy anything from `image_categorization/backend/storage/`.
 ACHA Headshots: standalone, in-browser rewrite
 
 ## Context
-The current headshot tool lives inside "Puck Press Photo AI" (C:\Users\conno\projects\image_categorization). It's a React frontend plus a Python backend that does the face finding, cropping and compression. The owner wants the headshot tool public and free to host. Their Hostinger Business plan can only host static or JavaScript web apps, so it can't run the Python backend.
+The current headshot tool lives inside an existing app (C:\Users\conno\projects\image_categorization). It's a React frontend plus a Python backend that does the face finding, cropping and compression. The owner wants the headshot tool public and free to host. Their Hostinger Business plan can only host static or JavaScript web apps, so it can't run the Python backend.
 
 Goal: a new, standalone project where everything runs in the visitor's browser:
 
@@ -607,7 +607,7 @@ Copy frontend/src/styles.css whole, along with components/ui.tsx (ErrorNote, Loa
 | components/headshots/Stepper.tsx | keep Stepper; delete deletedIn and retentionText |
 | pages/Headshots.tsx (hero) + pages/HeadshotUpload.tsx | merge into UploadScreen. There's no batch list. Replace the upload XHR with start(files); the progress meter now shows "Reading photos…" |
 | pages/HeadshotBatch.tsx | split into ProcessingScreen, ReviewScreen and ExportScreen. Keep the layout and copy; replace api.* calls, polling and reload() with context state. The download button calls download() instead of an `<a href>` to the server |
-| components/Layout.tsx | simple masthead: brand "Puck Press · ACHA Headshots", no nav |
+| components/Layout.tsx | simple masthead: brand "ACHA Headshots", no nav |
 
 App.tsx chooses the screen from state:
 - no batch → UploadScreen

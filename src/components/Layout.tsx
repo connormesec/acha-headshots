@@ -7,7 +7,6 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className="masthead__inner">
           <span className="brand">
             <span className="brand__mark" aria-hidden="true" />
-            <span className="brand__name">Puck Press</span>
             <span className="brand__product">ACHA Headshots</span>
           </span>
         </div>

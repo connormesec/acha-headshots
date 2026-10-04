@@ -1,5 +1,5 @@
 /** Headshot framing for ACHA (2:3 portrait, rendered at 1000x1500). Pure functions.
- * Port of backend/app/processing/headshot_crop.py from Puck Press Photo AI.
+ * Port of backend/app/processing/headshot_crop.py from the original Python headshot backend.
  *
  * Crops are fractions (0..1) of the image, so one box applies to the downscaled preview the
  * user edits and to the full-size original we render from. */

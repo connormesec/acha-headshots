@@ -1,5 +1,5 @@
 /** Data shapes. Headshot, Crop, HeadshotFlag and HeadshotPatch keep the old server's snake_case
- * shape (Puck Press frontend/src/types/api.ts) so the copied components work unchanged. */
+ * shape (the original frontend/src/types/api.ts) so the copied components work unchanged. */
 
 import type { Box } from "../lib/crop";
 

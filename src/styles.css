@@ -1,4 +1,4 @@
-/* Puck Press Photo AI — "rink sheet" palette.
+/* "Rink sheet" palette.
    Ice ground, navy ink, blue-line blue for identified players, goal-line red for anything that
    needs a human. Jersey numbers are set in a varsity block face; that is the one loud element. */
 
@@ -67,7 +67,6 @@ kbd {
   width: 22px; height: 12px; align-self: center; border-radius: 50%;
   background: var(--puck); box-shadow: 0 3px 0 #2b2f35;
 }
-.brand__name { font: 700 1.35rem var(--font-head); text-transform: uppercase; letter-spacing: 0.04em; }
 .brand__product { font: 600 1.35rem var(--font-head); color: var(--blue); text-transform: uppercase; letter-spacing: 0.04em; }
 
 /* Rink markings under the header: blue line, red center line, blue line. */
