@@ -179,11 +179,14 @@ export interface Crop { x: number; y: number; w: number; h: number }           /
 export interface Assessment { crop: Crop; source: "face" | "person" | "center"; flags: Flag[]; faces: Crop[] }
 
 export const ASPECT = 2 / 3;
-// Framing. Tune against real headshots (§12). HEAD_ABOVE_FACE was tuned for Haar boxes, which
-// start near the eyebrows; BlazeFace boxes start higher, so expect ~0.2–0.3.
-export const FACE_FRACTION = 0.32;      // face box height / crop height
-export const HEAD_ABOVE_FACE = 0.35;    // top of head is this many face-heights above the box
-export const HEAD_TOP_MARGIN = 0.10;    // space above the head, fraction of crop height
+// Framing. Tune against real headshots (§12). BlazeFace boxes start around mid-forehead, so hair
+// sits well above the box; when the person box (which includes hair) is a little higher still,
+// its top edge is used as the head top instead.
+export const FACE_FRACTION = 0.26;      // face box height / crop height
+export const HEAD_ABOVE_FACE = 0.5;     // top of head is this many face-heights above the box
+export const HEAD_TOP_MARGIN = 0.12;    // space above the head, fraction of crop height
+export const MAX_HEAD_ABOVE_FACE = 1.0; // a person-box top higher than this (raised arm, stick) is ignored
+export const MAX_HEAD_SPAN = 0.5;       // head top to chin takes at most this share of crop height
 export const PERSON_FACE_WIDTH = 0.38;
 export const PERSON_FACE_MAX_HEIGHT = 0.20;
 export const MIN_FACE_FRACTION = 0.04;
@@ -213,9 +216,11 @@ function fit(cx: number, top: number, cropH: number, imgW: number, imgH: number,
   return { x: left / imgW, y: top / imgH, w: cropW / imgW, h: cropH / imgH };
 }
 
-export function frameFace(face: Box, imgW: number, imgH: number): Crop {
-  const cropH = face.height / FACE_FRACTION;
-  const headTop = face.y - HEAD_ABOVE_FACE * face.height;
+/** `person`, if given, is the person box around this face: its top edge is the top of the hair. */
+export function frameFace(face: Box, imgW: number, imgH: number, person?: Box): Crop {
+  let headTop = face.y - HEAD_ABOVE_FACE * face.height;
+  if (person && person.y < headTop && person.y >= face.y - MAX_HEAD_ABOVE_FACE * face.height) headTop = person.y;
+  const cropH = Math.max(face.height / FACE_FRACTION, (face.y + face.height - headTop) / MAX_HEAD_SPAN);
   return fit(face.x + face.width / 2, headTop - HEAD_TOP_MARGIN * cropH, cropH, imgW, imgH, headTop);
 }
 
@@ -224,7 +229,7 @@ export function framePerson(p: Box, imgW: number, imgH: number): Crop {
   return frameFace(
     { x: Math.round(p.x + p.width / 2 - size / 2), y: Math.round(p.y + HEAD_ABOVE_FACE * size),
       width: Math.round(size), height: Math.round(size) },
-    imgW, imgH,
+    imgW, imgH, p,
   );
 }
 
@@ -272,7 +277,8 @@ export function assess(faces: Box[], persons: Box[], imgW: number, imgH: number)
   if (good.length) {
     if (twoSubjects(good) || twoSubjects(persons)) flags.push("multiple_people");
     if (good[0].height < SMALL_FACE_FRACTION * imgH) flags.push("small_face");
-    return { crop: frameFace(good[0], imgW, imgH), source: "face", flags, faces: asFrac };
+    const person = persons.find((p) => inside(good[0], p));
+    return { crop: frameFace(good[0], imgW, imgH, person), source: "face", flags, faces: asFrac };
   }
   if (persons.length) {
     flags.push("no_face");
@@ -656,7 +662,7 @@ Steps. Write these into the new README.md; hPanel labels may differ slightly.
 
 ## 12. Tuning the crop for BlazeFace
 Haar face boxes (old) start near the eyebrows; BlazeFace boxes start higher. With the ?debug overlay and ~10 real headshots (the owner's own, never committed):
-- Adjust HEAD_ABOVE_FACE so the top of the hair sits about 10% below the crop's top edge (HEAD_TOP_MARGIN). Expect ~0.2–0.3.
+- Adjust HEAD_ABOVE_FACE so the top of the hair sits about 12% below the crop's top edge (HEAD_TOP_MARGIN) when no person box helps. Currently 0.5. The person box top refines this when it is within MAX_HEAD_ABOVE_FACE.
 - Adjust FACE_FRACTION so the bottom edge lands around mid-chest.
 - Record the final values in a comment above the constants.
 

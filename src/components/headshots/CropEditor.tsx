@@ -1,5 +1,5 @@
 import { Fragment, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import { HEAD_ABOVE_FACE } from "../../lib/crop";
+import { HEAD_ABOVE_FACE, HEAD_TOP_MARGIN } from "../../lib/crop";
 import { useBatch } from "../../state/BatchContext";
 import type { Crop, Headshot, HeadshotPatch, Item } from "../../state/types";
 import { ErrorNote } from "../ui";
@@ -9,7 +9,7 @@ import { Modal } from "./Modal";
 import { NameField } from "./NameField";
 
 const ASPECT = 2 / 3; // width / height of the output
-const HEAD_GUIDE = 0.1; // where the top of the head should sit (matches the auto framing)
+const HEAD_GUIDE = HEAD_TOP_MARGIN; // where the top of the head should sit (matches the auto framing)
 
 type Corner = "nw" | "ne" | "sw" | "se";
 type DragState = { mode: "move" | Corner; x0: number; y0: number; start: Crop; rect: DOMRect; moved: boolean };

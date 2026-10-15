@@ -1,7 +1,7 @@
 // Port of the framing tests in the original backend/tests/test_headshots.py.
 import { describe, expect, it } from "vitest";
 import {
-  ASPECT, HEAD_ABOVE_FACE, HEAD_TOP_MARGIN, assess, cropPixels, frameCenter, frameFace,
+  ASPECT, HEAD_ABOVE_FACE, HEAD_TOP_MARGIN, MAX_HEAD_SPAN, assess, cropPixels, frameCenter, frameFace,
   isGenericName, normalizeCrop, resolutionFlags, type Box, type Crop,
 } from "../src/lib/crop";
 
@@ -22,6 +22,26 @@ describe("framing", () => {
     expect(Math.abs((c.x + c.w / 2) * w - 1500)).toBeLessThanOrEqual(1);
     const headTop = face.y - HEAD_ABOVE_FACE * face.height;
     expect(Math.abs((headTop - c.y * h) / (c.h * h) - HEAD_TOP_MARGIN)).toBeLessThanOrEqual(0.01);
+  });
+
+  it("a person box above the estimated head top pulls the crop up so the hair fits", () => {
+    const [w, h] = [3000, 4000];
+    const face = box(1300, 1200, 400, 400);
+    const person = box(1000, 900, 1000, 3100); // 0.75 face-heights above the face box
+    const c = frameFace(face, w, h, person);
+    expect(inside(c)).toBe(true);
+    expect(pxRatio(c, w, h)).toBeCloseTo(ASPECT, 6);
+    const cropH = c.h * h;
+    expect(Math.abs((person.y - c.y * h) / cropH - HEAD_TOP_MARGIN)).toBeLessThanOrEqual(0.01);
+    expect((face.y + face.height - person.y) / cropH).toBeLessThanOrEqual(MAX_HEAD_SPAN + 1e-9);
+    expect(c.y).toBeLessThan(frameFace(face, w, h).y);
+  });
+
+  it("a person box far above the face (raised arm) is ignored", () => {
+    const [w, h] = [3000, 4000];
+    const face = box(1300, 1600, 400, 400);
+    const person = box(1000, 100, 1000, 3900); // 3.75 face-heights above
+    expect(frameFace(face, w, h, person)).toEqual(frameFace(face, w, h));
   });
 
   it("face near the edge is shifted inside", () => {
@@ -80,6 +100,7 @@ describe("detection failures", () => {
     expect(a.source).toBe("face");
     expect(a.flags).toEqual([]);
     expect(a.faces).toHaveLength(1);
+    expect(a.crop.y * H).toBeLessThan(PERSON.y); // hair at the person box top is inside the crop
   });
 
   it("no face and no person is not a headshot", () => {
@@ -100,11 +121,11 @@ describe("detection failures", () => {
   it("two similar faces flag a group photo and use the largest", () => {
     const left = box(0, 300, 1000, 2700);
     const right = box(1000, 300, 1000, 2700);
-    const big = box(300, 600, 400, 400);
+    const big = box(350, 600, 400, 400);
     const other = box(1300, 600, 350, 350);
     const a = assess([other, big], [left, right], W, H);
     expect(a.flags).toContain("multiple_people");
-    expect(Math.abs((a.crop.x + a.crop.w / 2) * W - 500)).toBeLessThanOrEqual(2);
+    expect(Math.abs((a.crop.x + a.crop.w / 2) * W - 550)).toBeLessThanOrEqual(2);
     expect(a.faces).toHaveLength(2);
   });
 
