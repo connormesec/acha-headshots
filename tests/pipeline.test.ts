@@ -53,8 +53,8 @@ beforeEach(async () => {
   calls.length = 0;
   team = { id: "msu", name: "MSU Hockey", abbreviation: "MSU", source: "manual", sourceConfig: null, lastSyncedAt: null, createdAt: "" };
   players = DEMO_ROSTER.map(([first, last, n, pos], i) => ({
-    id: `p${i}`, teamId: team.id, externalId: null, firstName: first as string, lastName: last as string,
-    displayName: `${first} ${last}`, jerseyNumber: n as number, position: (pos as string) ?? null, headshotUrl: null, active: true,
+    id: `p${i}`, teamId: team.id, externalId: null, firstName: first, lastName: last,
+    displayName: `${first} ${last}`, jerseyNumber: n, position: pos ?? null, headshotUrl: null, active: true,
   }));
   await saveTeam(team, players);
 });
