@@ -1,6 +1,7 @@
 /** What the user picked → the photos to process, plus what was skipped and why.
  * Port of zip_ingest.py and the file checks in HeadshotUpload.tsx. */
 
+import type { Entry } from "@zip.js/zip.js";
 import type { DragEvent } from "react";
 import { MAX_FILE_BYTES, MAX_PHOTOS } from "./constants";
 import { PHOTO_EXTENSIONS, sanitizeFilename, stemOf, uniqueOutputName } from "./names";
@@ -17,15 +18,15 @@ export interface Candidate { path: string; outputName: string; blob: Blob }
 const MB = 1024 * 1024;
 const NOT_A_PHOTO = "not a photo we can use";
 const TOO_BIG = `over ${MAX_FILE_BYTES / MB} MB. Export a smaller copy.`;
-const tooMany = (n: number) => `That's ${n} photos. The limit is ${MAX_PHOTOS} per batch, so split them into smaller batches.`;
+export const tooMany = (n: number, max: number) => `That's ${n} photos. The limit is ${max} per batch, so split them into smaller batches.`;
 
-const ext = (name: string) => {
+export const ext = (name: string) => {
   const dot = name.lastIndexOf(".");
   return dot >= 0 ? name.slice(dot).toLowerCase() : "";
 };
-const relPath = (f: File) => (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name;
+export const relPath = (f: File) => (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name;
 /** Silent skips: a path part starting with "." (incl. .DS_Store, ._a.jpg) or a __MACOSX folder. */
-const hiddenPath = (path: string) =>
+export const hiddenPath = (path: string) =>
   path.split("/").some((part) => part.startsWith(".") || part.toLowerCase() === "__macosx");
 export const isHidden = (f: File) => hiddenPath(relPath(f));
 
@@ -35,7 +36,7 @@ export function formatSize(bytes: number): string {
 }
 
 /** Sort what the user chose into "one ZIP" or "these photos (and these will be skipped)". */
-export function classify(all: File[]): Picked | string {
+export function classify(all: File[], maxPhotos = MAX_PHOTOS): Picked | string {
   const files = all.filter((f) => !isHidden(f));
   if (!files.length) return "We didn't find any files there. Try choosing the photos themselves.";
   const zips = files.filter((f) => ext(f.name) === ".zip");
@@ -50,7 +51,7 @@ export function classify(all: File[]): Picked | string {
     else photos.push(f);
   }
   if (!photos.length) return "None of those files are photos. Choose JPG, PNG, HEIC, WebP, GIF, TIFF or BMP files, or a ZIP of them.";
-  if (photos.length > MAX_PHOTOS) return tooMany(photos.length);
+  if (photos.length > maxPhotos) return tooMany(photos.length, maxPhotos);
   return { kind: "photos", files: photos, skipped };
 }
 
@@ -87,8 +88,22 @@ export function defaultName(files: File[], picked: Picked): string {
   return rel.includes("/") ? rel.split("/")[0] : "";
 }
 
+export const entryBase = (e: Entry) => e.filename.replace(/\\/g, "/").split("/").pop() ?? e.filename;
+
+/** Why a ZIP entry can't be used ("hidden": skip it without a word), or null. The size and
+ * compression-ratio limits stop ZIP bombs (port of zip_ingest.py). */
+export function entryProblem(e: Entry): string | null {
+  const path = e.filename.replace(/\\/g, "/");
+  if (e.directory || hiddenPath(path)) return "hidden";
+  if (!PHOTO_EXTENSIONS.includes(ext(entryBase(e)))) return NOT_A_PHOTO;
+  if (e.encrypted) return "password-protected inside the ZIP";
+  if (e.uncompressedSize > MAX_FILE_BYTES) return TOO_BIG;
+  if (e.uncompressedSize / Math.max(1, e.compressedSize) > 200) return "looks damaged";
+  return null;
+}
+
 /** Sorted by lowercase path, each with a unique output name. */
-function name(found: { path: string; blob: Blob }[]): Candidate[] {
+export function name<T extends { path: string }>(found: T[]): (T & { outputName: string })[] {
   const taken = new Set<string>();
   return [...found]
     .sort((a, b) => (a.path.toLowerCase() < b.path.toLowerCase() ? -1 : a.path.toLowerCase() > b.path.toLowerCase() ? 1 : 0))
@@ -100,30 +115,25 @@ function name(found: { path: string; blob: Blob }[]): Candidate[] {
 export async function collect(picked: Picked, onProgress?: (p: number) => void): Promise<{ photos: Candidate[]; skipped: Skipped[] }> {
   if (picked.kind === "photos") {
     onProgress?.(1);
-    return { photos: name(picked.files.map((f) => ({ path: relPath(f), blob: f }))), skipped: picked.skipped };
+    return { photos: name(picked.files.map((f) => ({ path: relPath(f), blob: f as Blob }))), skipped: picked.skipped };
   }
   const { reader, entries } = await readZip(picked.file);
   try {
     const skipped: Skipped[] = [];
-    const accepted = [];
+    const accepted: Entry[] = [];
     for (const e of entries) {
-      const path = e.filename.replace(/\\/g, "/");
-      const base = path.split("/").pop() ?? path;
-      if (e.directory || hiddenPath(path)) continue; // silent
-      if (!PHOTO_EXTENSIONS.includes(ext(base))) skipped.push({ name: base, reason: NOT_A_PHOTO });
-      else if (e.encrypted) skipped.push({ name: base, reason: "password-protected inside the ZIP" });
-      else if (e.uncompressedSize > MAX_FILE_BYTES) skipped.push({ name: base, reason: TOO_BIG });
-      else if (e.uncompressedSize / Math.max(1, e.compressedSize) > 200) skipped.push({ name: base, reason: "looks damaged" });
+      const why = entryProblem(e);
+      if (why === "hidden") continue;
+      if (why) skipped.push({ name: entryBase(e), reason: why });
       else accepted.push(e);
     }
-    if (accepted.length > MAX_PHOTOS) throw new Error(tooMany(accepted.length));
+    if (accepted.length > MAX_PHOTOS) throw new Error(tooMany(accepted.length, MAX_PHOTOS));
     const found: { path: string; blob: Blob }[] = [];
     for (const [i, e] of accepted.entries()) {
-      const base = e.filename.split("/").pop() ?? e.filename;
       try {
         found.push({ path: e.filename, blob: await extract(e) });
       } catch {
-        skipped.push({ name: base, reason: "looks damaged" });
+        skipped.push({ name: entryBase(e), reason: "looks damaged" });
       }
       onProgress?.((i + 1) / accepted.length);
     }
