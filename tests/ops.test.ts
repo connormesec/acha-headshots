@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyPatch, needsLook, summary } from "../src/state/ops";
-import type { Batch, Item } from "../src/state/types";
+import { applyPatch, needsLook, summary } from "../src/features/headshots/state/ops";
+import type { Batch, Item } from "../src/features/headshots/state/types";
 
 const AUTO = { x: 0.2, y: 0.1, w: 0.5, h: 0.5 };
 

@@ -1,7 +1,14 @@
 node_modules/
 dist/
+server-dist/
 public/mediapipe/
+public/ort/
+public/models/*.onnx
+public/models/efficientdet_lite2.tflite
+public/models/*.json
 test-fixtures/
 test-results/
 playwright-report/
 *.tsbuildinfo
+.env
+data/

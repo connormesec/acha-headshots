@@ -4,14 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Photos never leave the device: the browser refuses any request to another site, and any
-         form submission. 'wasm-unsafe-eval' lets MediaPipe compile its WebAssembly. -->
+         form submission. 'wasm-unsafe-eval' lets MediaPipe and ONNX Runtime compile their WebAssembly.
+         The Node server sends the same policy as a header (server/src/security.ts); this copy keeps
+         a static-only deploy just as strict. -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:;
       connect-src 'self' blob: data:; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline';
       font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'" />
-    <meta name="description" content="Crop and shrink roster headshots for ACHA, right in your browser. Your photos never leave your device." />
+    <meta name="description" content="Roster headshots, game-photo sorting and player page backgrounds for ACHA teams, right in your browser." />
     <link rel="icon" type="image/svg+xml" href="./puck.svg" />
-    <title>ACHA Headshots</title>
+    <title>ACHA Photo Tools</title>
   </head>
   <body>
     <div id="root"></div>

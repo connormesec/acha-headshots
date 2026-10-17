@@ -9,13 +9,17 @@ import "@fontsource/saira-condensed/500.css";
 import "@fontsource/saira-condensed/600.css";
 import "@fontsource/saira-condensed/700.css";
 import { App } from "./App";
-import { BatchProvider } from "./state/BatchContext";
+import { AuthProvider } from "./app/AuthContext";
+import { BatchProvider } from "./features/headshots/state/BatchContext";
 import "./styles.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BatchProvider>
-      <App />
-    </BatchProvider>
+    <AuthProvider>
+      {/* Above the routes, so a headshot batch keeps going while you look at another tool. */}
+      <BatchProvider>
+        <App />
+      </BatchProvider>
+    </AuthProvider>
   </React.StrictMode>,
 );

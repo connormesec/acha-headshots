@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ASPECT, HEAD_ABOVE_FACE, HEAD_TOP_MARGIN, MAX_HEAD_SPAN, assess, cropPixels, frameCenter, frameFace,
   isGenericName, normalizeCrop, resolutionFlags, type Box, type Crop,
-} from "../src/lib/crop";
+} from "../src/features/headshots/lib/crop";
 
 const pxRatio = (c: Crop, w: number, h: number) => (c.w * w) / (c.h * h);
 const inside = (c: Crop) => {

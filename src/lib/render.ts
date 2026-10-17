@@ -1,14 +1,15 @@
 import { drawRegion, toJpeg } from "./canvas";
-import { MAX_OUTPUT_BYTES, OUT_H, OUT_W } from "./constants";
-import { cropPixels, type Crop } from "./crop";
 import { decodeImage, PhotoError } from "./decode";
+import { cropPixels, type Crop } from "./geometry";
 
-/** Crop the full-size original and return an exactly 1000×1500 JPEG under 2,000,000 bytes. */
-export async function renderHeadshot(original: Blob, crop: Crop): Promise<Blob> {
+export interface OutputSize { width: number; height: number; maxBytes: number }
+
+/** Crop the full-size original and return an exactly width×height JPEG under maxBytes. */
+export async function renderCrop(original: Blob, crop: Crop, out: OutputSize): Promise<Blob> {
   const bmp = await decodeImage(original);
   try {
-    const { left, top, width, height } = cropPixels(crop, bmp.width, bmp.height);
-    return await encodeUnder(drawRegion(bmp, left, top, width, height, OUT_W, OUT_H), MAX_OUTPUT_BYTES);
+    const { left, top, width, height } = cropPixels(crop, bmp.width, bmp.height, out.width / out.height);
+    return await encodeUnder(drawRegion(bmp, left, top, width, height, out.width, out.height), out.maxBytes);
   } finally {
     bmp.close();
   }

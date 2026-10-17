@@ -1,32 +1,23 @@
-import { useEffect } from "react";
-import { Layout } from "./components/Layout";
-import { useBatch } from "./state/BatchContext";
-import { ExportScreen } from "./screens/ExportScreen";
-import { ProcessingScreen } from "./screens/ProcessingScreen";
-import { ReviewScreen } from "./screens/ReviewScreen";
-import { UploadScreen } from "./screens/UploadScreen";
+import { createHashRouter, RouterProvider } from "react-router";
+import { AdminLogin } from "./app/AdminLogin";
+import { Home } from "./app/Home";
+import { Layout } from "./app/Layout";
+import { HeadshotsPage } from "./features/headshots/HeadshotsPage";
 
-/** No router: the screen follows the batch's state. */
+/** Hash routes (#/jobs/…): the build uses relative paths, so it works from any folder and needs no
+ * server rewrite rules. */
+const router = createHashRouter([
+  {
+    element: <Layout />,
+    children: [
+      { index: true, element: <Home /> },
+      { path: "headshots", element: <HeadshotsPage /> },
+      { path: "admin", element: <AdminLogin /> },
+      { path: "*", element: <div className="empty"><h2>Page not found</h2></div> },
+    ],
+  },
+]);
+
 export function App() {
-  const { batch, backToCrops, storageFailed } = useBatch();
-  const screen = !batch ? "upload"
-    : batch.status === "PROCESSING" ? "processing"
-    : batch.status === "READY" || batch.status === "FAILED" || backToCrops ? "review"
-    : "export";
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [screen]);
-
-  return (
-    <Layout>
-      {storageFailed && (
-        <div className="note note--warn">Your work won't survive a page refresh in this browser.</div>
-      )}
-      {screen === "upload" && <UploadScreen />}
-      {screen === "processing" && batch && <ProcessingScreen batch={batch} />}
-      {screen === "review" && batch && <ReviewScreen batch={batch} />}
-      {screen === "export" && batch && <ExportScreen batch={batch} />}
-    </Layout>
-  );
+  return <RouterProvider router={router} />;
 }

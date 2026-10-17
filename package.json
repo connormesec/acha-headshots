@@ -1,13 +1,16 @@
 {
-  "name": "acha-headshots",
+  "name": "acha-photo-tools",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run copy-mediapipe && vite",
-    "build": "npm run copy-mediapipe && tsc -b && vite build",
+    "dev": "npm run assets && vite",
+    "dev:server": "tsx watch server/src/index.ts",
+    "assets": "node scripts/copy-mediapipe.mjs && node scripts/copy-ort.mjs && node scripts/fetch-models.mjs",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.server.json",
+    "build": "npm run assets && npm run typecheck && vite build && node scripts/build-server.mjs",
+    "start": "node server-dist/index.mjs",
     "preview": "vite preview",
-    "copy-mediapipe": "node scripts/copy-mediapipe.mjs",
     "fixtures": "node scripts/make-fixtures.mjs",
     "test": "vitest run",
     "e2e": "playwright test"
@@ -21,21 +24,33 @@
     "@fontsource/saira-condensed": "^5.3.0",
     "@mediapipe/tasks-vision": "1.0.1",
     "@zip.js/zip.js": "^2.23.0",
+    "express": "^5.1.0",
     "heic-to": "^1.6.5",
+    "idb": "^8.0.3",
     "idb-keyval": "^6.3.0",
+    "onnxruntime-web": "^1.30.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "utif2": "^4.1.0"
+    "react-router": "^7.18.4",
+    "utif2": "^4.1.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@types/express": "^5.0.3",
     "@types/node": "^22.20.5",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
+    "@types/supertest": "^6.0.3",
     "@vitejs/plugin-react": "^4.7.0",
+    "esbuild": "^0.25.11",
+    "fake-indexeddb": "^6.2.4",
+    "onnxruntime-node": "^1.30.0",
     "sharp": "^0.35.5",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^6.4.3",
-    "vitest": "^3.2.7"
+    "vitest": "^4.1.12"
   }
 }

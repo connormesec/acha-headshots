@@ -29,7 +29,7 @@ test("ZIP to ACHA files, entirely in the browser", async ({ page }) => {
     if (m.type() === "error" || /Content Security Policy/i.test(m.text())) problems.push(`console: ${m.text()}`);
   });
 
-  await page.goto("/");
+  await page.goto("/#/headshots");
   await page.getByTestId("files-input").setInputFiles(FIXTURES);
   await expect(page.getByText("fixtures.zip", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Crop my photos →" }).click();
@@ -97,13 +97,14 @@ test("ZIP to ACHA files, entirely in the browser", async ({ page }) => {
   }
   await reader.close();
 
-  // Nothing left the device: same-origin GETs only.
+  // Nothing left the device: same-origin GETs only, and the only API call is "who am I".
   const origin = new URL(page.url()).origin;
   const network = requests.filter((r) => /^https?:/.test(r.url));
   expect(network.length).toBeGreaterThan(0);
   for (const r of network) {
     expect.soft(new URL(r.url).origin, r.url).toBe(origin);
     expect.soft(r.method, r.url).toBe("GET");
+    if (new URL(r.url).pathname.startsWith("/api/")) expect.soft(new URL(r.url).pathname, r.url).toBe("/api/auth/me");
   }
   expect(problems).toEqual([]);
 });
