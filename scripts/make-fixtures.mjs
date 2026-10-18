@@ -67,3 +67,9 @@ for (const [name, data] of Object.entries(files)) {
 }
 writeFileSync(join(OUT, "fixtures.zip"), Buffer.from(await (await zip.close()).arrayBuffer()));
 console.log(`Wrote ${Object.keys(files).length} fixtures and fixtures.zip to ${OUT}/`);
+
+// A synthetic game for the sorting e2e tests (filename-driven mocks; see scripts/demo-zip.mjs).
+const { buildDemoZip, DEMO_ROSTER } = await import("./demo-zip.mjs");
+writeFileSync(join(OUT, "demo-game.zip"), await buildDemoZip());
+writeFileSync(join(OUT, "demo-roster.txt"), DEMO_ROSTER.map(([f, l, n, pos]) => `${n} ${f} ${l}${pos ? " G" : ""}`).join("\n"));
+console.log(`Wrote demo-game.zip and demo-roster.txt to ${OUT}/`);

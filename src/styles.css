@@ -752,3 +752,17 @@ a.photo-tile:hover { border-color: var(--blue); }
   .masthead__inner { flex-direction: column; align-items: flex-start; }
   .masthead__nav { justify-content: flex-start; }
 }
+
+/* ---------------------------------------------------------------- sorting extras */
+.blob-img--loading { display: block; background: var(--ice-deep); }
+.thumbs .blob-img--loading { aspect-ratio: 1; border-radius: 4px; }
+.photo-tile .blob-img--loading, .photo-tile__img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }
+.crop.blob-img--loading { height: 160px; }
+.pick .blob-img--loading { width: 100%; height: 100%; }
+.ai-toggle {
+  display: flex; gap: 0.75rem; align-items: flex-start; margin: 1rem 0 0; padding: 0.85rem 1rem;
+  border: 1.5px solid var(--good); border-radius: 8px; background: var(--good-soft); cursor: pointer;
+}
+.ai-toggle input { width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; flex: none; }
+.ai-toggle > span { display: grid; gap: 0.25rem; }
+.ai-toggle b { font-family: var(--font-head); font-size: 1.05rem; letter-spacing: 0.02em; }

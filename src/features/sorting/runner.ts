@@ -13,6 +13,8 @@ import { createVisionClient } from "./vision/client";
 export interface RunState {
   running: string | null;
   queued: string[];
+  /** Paused by the user in this tab: not started again automatically. */
+  paused: string[];
   progress: Record<string, Progress>;
   /** Set while models download before the first photo. */
   loading: string | null;
@@ -20,7 +22,7 @@ export interface RunState {
   version: number; // bumps on every change, for pages that reload from the database
 }
 
-let state: RunState = { running: null, queued: [], progress: {}, loading: null, error: {}, version: 0 };
+let state: RunState = { running: null, queued: [], paused: [], progress: {}, loading: null, error: {}, version: 0 };
 const listeners = new Set<() => void>();
 const stopRequested = new Set<string>();
 let spendListener: ((s: Spend) => void) | null = null;
@@ -48,13 +50,13 @@ export interface RunOptions { admin: boolean }
 export function startJob(jobId: string, opts: RunOptions) {
   if (state.running === jobId || state.queued.includes(jobId)) return;
   stopRequested.delete(jobId);
-  set({ queued: [...state.queued, jobId], error: { ...state.error, [jobId]: "" } });
+  set({ queued: [...state.queued, jobId], paused: state.paused.filter((p) => p !== jobId), error: { ...state.error, [jobId]: "" } });
   if (!state.running) void next(opts);
 }
 
 /** Pause after the current photo. */
 export function pauseJob(jobId: string) {
-  if (state.queued.includes(jobId)) set({ queued: state.queued.filter((q) => q !== jobId) });
+  set({ queued: state.queued.filter((q) => q !== jobId), paused: [...state.paused, jobId] });
   if (state.running === jobId) stopRequested.add(jobId);
 }
 

@@ -26,6 +26,12 @@ export const MODELS = [
     url: `${HF}/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/b8f84f0b80c529de40b4fbb3544b84fa7233a513/inference.onnx`,
     sha256: "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634",
   },
+  {
+    // "Pick your jersey": appearance embeddings, DINOv2 ViT-S/14, int8 (Apache-2.0)
+    file: "dinov2_small_int8.onnx",
+    url: `${HF}/onnx-community/dinov2-small/resolve/8b1f705a3a7f6f062f6bdd21986c1583d3ef105d/onnx/model_int8.onnx`,
+    sha256: "dfce54a839b491f395c516350ebb4a78f947e9170a6beac0f2bc5638e0f09d61",
+  },
 ];
 
 const CACHE = "node_modules/.cache/models";
