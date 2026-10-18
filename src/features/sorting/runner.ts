@@ -86,8 +86,10 @@ async function run(jobId: string, opts: RunOptions): Promise<Job | undefined> {
   set({ loading: jobId });
   try {
     await warmUp();
-  } catch {
-    throw new Error("Couldn't load the photo models. Check your connection and try again.");
+  } catch (e) {
+    console.warn('model load failed', e);
+    const why = e instanceof Error ? e.message : String(e);
+    throw new Error(`Couldn't load the photo models (${why.slice(0, 200)}). Check your connection and try again.`);
   } finally {
     set({ loading: null });
   }

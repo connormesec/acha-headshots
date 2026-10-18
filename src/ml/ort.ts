@@ -1,5 +1,5 @@
 /** ONNX Runtime (WebAssembly), served from our own site (public/ort), models from public/models.
- * Runs inference in a worker so the page stays responsive, with several threads when the page is
+ * Uses several threads when the page is
  * cross-origin isolated (the Node server sends the headers; a plain static host gets one thread). */
 
 import * as ort from "onnxruntime-web/wasm";
@@ -10,9 +10,12 @@ let configured = false;
 function configure() {
   if (configured) return;
   configured = true;
-  ort.env.wasm.wasmPaths = asset("ort/");
+  // Absolute: ORT resolves a relative path against its own script (assets/), not the page.
+  ort.env.wasm.wasmPaths = new URL(asset("ort/"), location.href).href;
   ort.env.wasm.numThreads = globalThis.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
-  ort.env.wasm.proxy = true;
+  // No proxy worker: it can't start from a bundled chunk. Inference runs on the page; the pipeline
+  // awaits between steps, so the page stays responsive.
+  ort.env.wasm.proxy = false;
   ort.env.logLevel = "error";
 }
 
