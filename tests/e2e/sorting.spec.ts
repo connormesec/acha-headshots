@@ -4,7 +4,7 @@
 // The point of these tests: everyone can sort, but only an admin's job ever reaches the paid AI
 // endpoint, and only for numbers the local reader couldn't make out.
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { BlobReader, TextWriter, ZipReader } from "@zip.js/zip.js";
+import { BlobReader, TextWriter, Uint8ArrayWriter, ZipReader } from "@zip.js/zip.js";
 import { readFileSync } from "node:fs";
 
 const GAME = "test-fixtures/demo-game.zip";
@@ -122,4 +122,34 @@ test("the AI endpoints refuse anyone without a valid admin cookie", async ({ req
   const forged = await request.post("/api/vision/jersey-number", { data: body, headers: { ...headers, Cookie: "acha_admin=9999999999.0000" } });
   expect(forged.status()).toBe(401);
   expect(await serverVisionCalls(request)).toBe(0);
+});
+
+test("player page backgrounds: one 1080 x 440 JPEG per player, named after them", async ({ page }) => {
+  const { vision, problems } = watch(page);
+  await addTeam(page);
+  await page.goto("/?mockcv#/player-bg/new");
+  await page.getByTestId("sort-files-input").setInputFiles(GAME);
+  await page.getByRole("button", { name: /^Start for MSU Hockey/ }).click();
+  await expect(page.getByText("10 players ready")).toBeVisible({ timeout: 2 * 60_000 });
+
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download ZIP" }).click()]);
+  expect(download.suggestedFilename()).toBe("demo-game - player backgrounds.zip");
+  const zip = new ZipReader(new BlobReader(new Blob([readFileSync(await download.path())])));
+  const entries = await zip.getEntries();
+  const jpegs = entries.filter((e) => e.filename.endsWith(".jpg"));
+  expect(jpegs.map((e) => e.filename).sort()).toEqual([
+    "alex-carter.jpg", "bob-johnson.jpg", "chris-anderson.jpg", "jake-wilson.jpg", "john-smith.jpg",
+    "matt-davis.jpg", "mike-jones.jpg", "ryan-miller.jpg", "sam-brown.jpg", "tom-wilson.jpg",
+  ]);
+  const sharp = (await import("sharp")).default;
+  for (const e of jpegs) {
+    const data = Buffer.from(await e.getData!(new Uint8ArrayWriter()));
+    const meta = await sharp(data).metadata();
+    expect.soft([meta.format, meta.width, meta.height], e.filename).toEqual(["jpeg", 1080, 440]);
+    expect.soft(data.length, e.filename).toBeLessThanOrEqual(250_000);
+  }
+  expect(entries.map((e) => e.filename)).toContain("manifest.csv");
+  await zip.close();
+  expect(vision).toEqual([]);
+  expect(problems).toEqual([]);
 });

@@ -726,7 +726,6 @@ a.photo-tile:hover { border-color: var(--blue); }
 .editor--banner { grid-template-columns: minmax(0, 1fr) 320px; }
 .editor__preview--banner { width: 100%; }
 .editor__subject {
-.editor__subject {
   position: absolute; z-index: 1; border: 2px dashed #7ea6ff; border-radius: 4px; pointer-events: none;
 }
 @media (max-width: 860px) {
@@ -765,4 +764,5 @@ a.photo-tile:hover { border-color: var(--blue); }
 }
 .ai-toggle input { width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; flex: none; }
 .ai-toggle > span { display: grid; gap: 0.25rem; }
+.ai-toggle .muted { display: block; }
 .ai-toggle b { font-family: var(--font-head); font-size: 1.05rem; letter-spacing: 0.02em; }
